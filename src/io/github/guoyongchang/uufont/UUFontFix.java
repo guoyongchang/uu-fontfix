@@ -7,8 +7,11 @@ import android.content.res.Resources;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -45,24 +48,58 @@ public class UUFontFix implements IXposedHookLoadPackage {
         if (sNerd == null) {
             IN_LOAD.set(Boolean.TRUE);
             try {
-                // ① 模块自带字体（复制到目标进程缓存后加载）
+                // ① 模块自带字体（多策略：Android 11+ 包可见性限制需要绕行）
                 try {
                     Context app = AndroidAppHelper.currentApplication();
                     if (app != null) {
-                        Context mod = app.createPackageContext(MODULE_PKG,
-                                Context.CONTEXT_IGNORE_SECURITY);
-                        File dst = new File(app.getCacheDir(), "uuterm_nerd_mono.ttf");
-                        if (!dst.exists() || dst.length() == 0) {
-                            InputStream in = mod.getAssets().open(BUNDLED_FONT);
-                            FileOutputStream out = new FileOutputStream(dst);
-                            byte[] buf = new byte[65536];
-                            int n;
-                            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
-                            out.close();
-                            in.close();
+                        byte[] data = null;
+                        // ①a 模块上下文（依赖 android:forceQueryable="true"）
+                        try {
+                            Context mod = app.createPackageContext(MODULE_PKG,
+                                    Context.CONTEXT_IGNORE_SECURITY);
+                            data = readAll(mod.getAssets().open(BUNDLED_FONT));
+                            sSource = "bundled(①a)";
+                        } catch (Throwable t) {
+                            XposedBridge.log(TAG + "①a 模块上下文不可用: " + t);
                         }
-                        sNerd = Typeface.createFromFile(dst);
-                        if (sNerd != null) sSource = "bundled";
+                        // ①b 类加载器资源
+                        if (data == null) {
+                            try {
+                                InputStream in = UUFontFix.class.getResourceAsStream("/assets/" + BUNDLED_FONT);
+                                if (in != null) {
+                                    data = readAll(in);
+                                    sSource = "bundled(①b)";
+                                }
+                            } catch (Throwable t) {
+                                XposedBridge.log(TAG + "①b 失败: " + t);
+                            }
+                        }
+                        // ①c /proc/self/maps 找模块 APK 路径，直接读 zip 里的 assets
+                        if (data == null) {
+                            try {
+                                String apk = findModuleApkInMaps();
+                                if (apk != null) {
+                                    java.util.zip.ZipFile zf = new java.util.zip.ZipFile(apk);
+                                    java.util.zip.ZipEntry e = zf.getEntry("assets/" + BUNDLED_FONT);
+                                    if (e != null) {
+                                        data = readAll(zf.getInputStream(e));
+                                        sSource = "bundled(①c:" + apk + ")";
+                                    }
+                                    zf.close();
+                                }
+                            } catch (Throwable t) {
+                                XposedBridge.log(TAG + "①c 失败: " + t);
+                            }
+                        }
+                        if (data != null) {
+                            File dst = new File(app.getCacheDir(), "uuterm_nerd_mono.ttf");
+                            FileOutputStream out = new FileOutputStream(dst);
+                            out.write(data);
+                            out.close();
+                            sNerd = Typeface.createFromFile(dst);
+                        }
+                    } else {
+                        XposedBridge.log(TAG + "① 当前无 Application 上下文，跳过内置字体");
                     }
                 } catch (Throwable t) {
                     XposedBridge.log(TAG + "内置字体加载失败: " + t);
@@ -96,6 +133,38 @@ public class UUFontFix implements IXposedHookLoadPackage {
     /** 自己的加载调用不处理（防递归） */
     private static boolean isLoading() {
         return Boolean.TRUE.equals(IN_LOAD.get());
+    }
+
+    private static byte[] readAll(InputStream in) throws Exception {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(2621440);
+        byte[] buf = new byte[65536];
+        int n;
+        while ((n = in.read(buf)) > 0) bos.write(buf, 0, n);
+        in.close();
+        return bos.toByteArray();
+    }
+
+    /** 从 /proc/self/maps 找本模块 APK 路径（绕开 Android 11+ 包可见性限制） */
+    private static String findModuleApkInMaps() {
+        try {
+            BufferedReader r = new BufferedReader(new FileReader("/proc/self/maps"));
+            String line;
+            while ((line = r.readLine()) != null) {
+                int i = line.indexOf("/data/app/");
+                if (i < 0) continue;
+                String p = line.substring(i);
+                int sp = p.indexOf(' ');
+                if (sp > 0) p = p.substring(0, sp);
+                if (p.endsWith(".apk") && p.contains(MODULE_PKG)) {
+                    r.close();
+                    return p;
+                }
+            }
+            r.close();
+        } catch (Throwable t) {
+            XposedBridge.log(TAG + "maps 扫描失败: " + t);
+        }
+        return null;
     }
 
     private static String fmt(Object[] args) {

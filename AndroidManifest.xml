@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="io.github.guoyongchang.uufont"
-    android:versionCode="2"
-    android:versionName="1.0.0">
+    android:versionCode="3"
+    android:versionName="1.0.1">
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="34" />
     <application
         android:label="UU Terminal NerdFont"
         android:icon="@mipmap/ic_launcher"
+        android:forceQueryable="true"
         android:hasCode="true">
         <meta-data android:name="xposedmodule" android:value="true" />
         <meta-data android:name="xposeddescription"

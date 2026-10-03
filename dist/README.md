@@ -8,8 +8,8 @@
 
 ## 下载
 
-- 最新 APK：[`dist/uu-terminal-nerdfont-v1.0.0.apk`](dist/uu-terminal-nerdfont-v1.0.0.apk)
-- 打包下载（APK + 本说明）：[`dist/uu-terminal-nerdfont-v1.0.0.zip`](dist/uu-terminal-nerdfont-v1.0.0.zip)
+- 最新 APK：[`dist/uu-terminal-nerdfont-v1.0.1.apk`](dist/uu-terminal-nerdfont-v1.0.1.apk)
+- 打包下载（APK + 本说明）：[`dist/uu-terminal-nerdfont-v1.0.1.zip`](dist/uu-terminal-nerdfont-v1.0.1.zip)
 - 或见仓库 Releases 页
 
 ## 现象
@@ -33,7 +33,7 @@ UU 远程 → 设备 → **终端** → 进入会话后，所有 Nerd Font 图�
 
 ## 安装
 
-1. 安装 APK：`adb install uu-terminal-nerdfont-v1.0.0.apk`（或在设备上直接点开安装）
+1. 安装 APK：`adb install uu-terminal-nerdfont-v1.0.1.apk`（或在设备上直接点开安装）
 2. 打开 LSPosed / Vector 管理器 → 模块 → **启用「UU Terminal NerdFont」**
 3. **作用域勾选**：`UU远程`（`com.netease.uuremote`）
 4. **重启设备**（至少重启 UU 远程进程）
