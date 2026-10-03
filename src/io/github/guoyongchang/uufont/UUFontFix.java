@@ -1,4 +1,4 @@
-package com.guo.uufont;
+package io.github.guoyongchang.uufont;
 
 import android.app.AndroidAppHelper;
 import android.content.Context;
@@ -32,7 +32,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 public class UUFontFix implements IXposedHookLoadPackage {
 
     private static final String TARGET_PKG = "com.netease.uuremote";
-    private static final String MODULE_PKG = "com.guo.uufont";
+    private static final String MODULE_PKG = "io.github.guoyongchang.uufont";
     private static final String BUNDLED_FONT = "fonts/JetBrainsMonoNerdFontMono-Regular.ttf";
     private static final String SYSTEM_FONT = "/system/fonts/DroidSansMono.ttf";
     private static final String TAG = "[UUFontFix] ";

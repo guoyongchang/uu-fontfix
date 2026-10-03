@@ -1,5 +1,5 @@
 #!/bin/bash
-# 构建「UU 终端字体修复」Xposed 模块（com.guo.uufont）
+# 构建「UU 终端字体修复」Xposed 模块（io.github.guoyongchang.uufont）
 #
 # 作用：把网易 UU 远程（com.netease.uuremote）进程内加载的任何 ttf 字体
 #       替换为系统 monospace（/system/fonts/DroidSansMono.ttf —— 已由
@@ -13,8 +13,8 @@
 #     来源 maven.aliyun.com 镜像 de.robv.android.xposed:api:82）
 #
 # 安装：adb install -r uu-terminal-nerdfont.apk
-# 启用：su -c 'sh /data/adb/modules/zygisk_vector/cli modules enable com.guo.uufont'
-# 作用域：su -c 'sh /data/adb/modules/zygisk_vector/cli scope set com.guo.uufont com.netease.uuremote/0'
+# 启用：su -c 'sh /data/adb/modules/zygisk_vector/cli modules enable io.github.guoyongchang.uufont'
+# 作用域：su -c 'sh /data/adb/modules/zygisk_vector/cli scope set io.github.guoyongchang.uufont com.netease.uuremote/0'
 # 重启生效。
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -28,7 +28,7 @@ rm -rf build
 mkdir -p build/classes build/dex
 
 echo "[1/5] javac"
-javac -source 8 -target 8 -nowarn -cp "$AJ:api-82.jar" -d build/classes src/com/guo/uufont/UUFontFix.java
+javac -source 8 -target 8 -nowarn -cp "$AJ:api-82.jar" -d build/classes src/io/github/guoyongchang/uufont/UUFontFix.java
 
 echo "[2/5] dx -> classes.dex"
 "$DX" --dex --output=build/dex/classes.dex build/classes
