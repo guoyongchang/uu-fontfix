@@ -1,0 +1,15 @@
+# 构建产物
+build/
+classes/
+dexout/
+module.jar
+aligned.apk
+unsigned.apk
+*.idsig
+/*.apk
+
+# 签名私钥（绝不提交）
+ks.jks
+
+# 系统文件
+.DS_Store
